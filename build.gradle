@@ -1,0 +1,57 @@
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+}
+
+group = 'ru.timurniz4mov'
+version = mod_version
+base { archivesName = 'living-civilizations' }
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+minecraft {
+    mappings channel: 'official', version: '1.20.1'
+    copyIdeResources = true
+
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'info'
+            mods { livingcivilizations { source sourceSets.main } }
+        }
+        client { }
+        server { args '--nogui' }
+    }
+}
+
+repositories { mavenCentral() }
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching(['META-INF/mods.toml']) { expand 'version': project.version }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    manifest {
+        attributes([
+            'Specification-Title': 'Living Civilizations',
+            'Specification-Vendor': 'Timur',
+            'Specification-Version': '1',
+            'Implementation-Title': project.name,
+            'Implementation-Version': project.version,
+            'Implementation-Vendor': 'Timur'
+        ])
+    }
+    finalizedBy 'reobfJar'
+}

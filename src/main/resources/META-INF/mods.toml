@@ -1,0 +1,21 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+[[mods]]
+modId="livingcivilizations"
+version="${version}"
+displayName="Живые цивилизации"
+authors="Timur"
+description='''Средневековые поселения, NPC-путники, торговцы, рабочие, стража, королевства и разбойники.'''
+[[dependencies.livingcivilizations]]
+modId="forge"
+mandatory=true
+versionRange="[47,)"
+ordering="NONE"
+side="BOTH"
+[[dependencies.livingcivilizations]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,1.20.2)"
+ordering="NONE"
+side="BOTH"
