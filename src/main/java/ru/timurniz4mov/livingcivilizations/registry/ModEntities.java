@@ -2,13 +2,8 @@ package ru.timurniz4mov.livingcivilizations.registry;
 
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.SpawnPlacements;
-import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
-import net.minecraftforge.event.entity.SpawnPlacementRegisterEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -42,12 +37,6 @@ public final class ModEntities {
                         (EntityType<CivilianEntity> type, net.minecraft.world.level.Level level) -> new CivilianEntity(type, level, role),
                         MobCategory.CREATURE)
                 .sized(0.6F, 1.95F).clientTrackingRange(10).build(id));
-    }
-
-    public static void registerSpawnPlacements(SpawnPlacementRegisterEvent event) {
-        event.register(BANDIT.get(), SpawnPlacements.Type.ON_GROUND,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Monster::checkMonsterSpawnRules,
-                SpawnPlacementRegisterEvent.Operation.REPLACE);
     }
 
     public static void registerAttributes(EntityAttributeCreationEvent event) {
