@@ -6,6 +6,7 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
@@ -19,7 +20,7 @@ public class BanditCampFeature extends Feature<NoneFeatureConfiguration> {
     @Override
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel level = context.level();
-        BlockPos origin = context.origin();
+        BlockPos origin = chunkCenter(level, context.origin());
         if (!level.getBlockState(origin.below()).isSolid()) return false;
 
         // Flatten a modest camp clearing.
@@ -62,8 +63,18 @@ public class BanditCampFeature extends Feature<NoneFeatureConfiguration> {
         put(level, origin, centerX, 3, centerZ, wool);
     }
 
+    private static BlockPos chunkCenter(WorldGenLevel level, BlockPos featureOrigin) {
+        int centerX = (featureOrigin.getX() & ~15) + 8;
+        int centerZ = (featureOrigin.getZ() & ~15) + 8;
+        int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, centerX, centerZ);
+        return new BlockPos(centerX, surfaceY, centerZ);
+    }
+
     private static void put(WorldGenLevel level, BlockPos origin, int x, int y, int z, BlockState state) {
-        level.setBlock(origin.offset(x, y, z), state, 2);
+        BlockPos target = origin.offset(x, y, z);
+        // Custom features must not write into neighbouring chunks while they are being generated.
+        if ((target.getX() >> 4) != (origin.getX() >> 4) || (target.getZ() >> 4) != (origin.getZ() >> 4)) return;
+        level.setBlock(target, state, 2);
     }
 
     private static void spawn(WorldGenLevel level, BlockPos pos) {

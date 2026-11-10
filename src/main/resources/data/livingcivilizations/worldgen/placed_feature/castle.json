@@ -1,7 +1,7 @@
 {
   "feature": "livingcivilizations:castle",
   "placement": [
-    { "type": "minecraft:rarity_filter", "chance": 150 },
+    { "type": "minecraft:rarity_filter", "chance": 240 },
     { "type": "minecraft:in_square" },
     { "type": "minecraft:surface_water_depth_filter", "max_water_depth": 0 },
     { "type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG" },

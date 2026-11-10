@@ -6,6 +6,7 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
@@ -18,7 +19,7 @@ public class CastleFeature extends Feature<NoneFeatureConfiguration> {
     @Override
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel level = context.level();
-        BlockPos origin = context.origin();
+        BlockPos origin = chunkCenter(level, context.origin());
         if (!level.getBlockState(origin.below()).isSolid()) return false;
 
         // Каменная площадка и стены крепости.
@@ -66,7 +67,7 @@ public class CastleFeature extends Feature<NoneFeatureConfiguration> {
         put(level, origin, -2, 1, 0, Blocks.CRAFTING_TABLE.defaultBlockState());
 
         // Полноразмерная дорога от ворот наружу.
-        for (int z = 8; z <= 21; z++) {
+        for (int z = 4; z <= 7; z++) {
             put(level, origin, 0, 0, z, z % 5 == 0 ? Blocks.STONE_BRICKS.defaultBlockState() : Blocks.GRAVEL.defaultBlockState());
         }
         spawn(level, ModEntities.KING.get(), origin.offset(0, 1, 0));
@@ -77,8 +78,18 @@ public class CastleFeature extends Feature<NoneFeatureConfiguration> {
         return true;
     }
 
+    private static BlockPos chunkCenter(WorldGenLevel level, BlockPos featureOrigin) {
+        int centerX = (featureOrigin.getX() & ~15) + 8;
+        int centerZ = (featureOrigin.getZ() & ~15) + 8;
+        int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, centerX, centerZ);
+        return new BlockPos(centerX, surfaceY, centerZ);
+    }
+
     private static void put(WorldGenLevel level, BlockPos origin, int x, int y, int z, BlockState state) {
-        level.setBlock(origin.offset(x, y, z), state, 2);
+        BlockPos target = origin.offset(x, y, z);
+        // Custom features must not write into neighbouring chunks while they are being generated.
+        if ((target.getX() >> 4) != (origin.getX() >> 4) || (target.getZ() >> 4) != (origin.getZ() >> 4)) return;
+        level.setBlock(target, state, 2);
     }
 
     private static void spawn(WorldGenLevel level, net.minecraft.world.entity.EntityType<CivilianEntity> type, BlockPos pos) {

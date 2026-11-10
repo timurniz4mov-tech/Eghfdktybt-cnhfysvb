@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
@@ -24,7 +25,7 @@ public class SettlementFeature extends Feature<NoneFeatureConfiguration> {
     @Override
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel level = context.level();
-        BlockPos origin = context.origin();
+        BlockPos origin = chunkCenter(level, context.origin());
         if (!level.getBlockState(origin.below()).isSolid()) return false;
 
         // Дом с полноценными блоками пола, стен и крыши.
@@ -69,28 +70,38 @@ public class SettlementFeature extends Feature<NoneFeatureConfiguration> {
         put(level, origin, 2, 1, -3, Blocks.BELL.defaultBlockState());
 
         // Небольшая грядка рядом с домом.
-        for (int x = 7; x <= 10; x++) {
+        for (int x = 5; x <= 7; x++) {
             for (int z = -2; z <= 2; z++) {
                 put(level, origin, x, 0, z, Blocks.FARMLAND.defaultBlockState());
                 put(level, origin, x, 1, z, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, 7));
             }
         }
-        put(level, origin, 8, 0, 3, Blocks.WATER.defaultBlockState());
+        put(level, origin, 6, 0, 3, Blocks.WATER.defaultBlockState());
 
         // Дорога — только полноразмерные блоки, не плиты и не тонкие дорожные блоки.
-        for (int z = 5; z <= 17; z++) {
+        for (int z = 5; z <= 7; z++) {
             put(level, origin, 0, 0, z, z % 4 == 0 ? Blocks.COBBLESTONE.defaultBlockState() : Blocks.GRAVEL.defaultBlockState());
         }
         spawn(level, ModEntities.WORKER.get(), origin.offset(-2, 1, 1));
         spawn(level, ModEntities.FARMER.get(), origin.offset(2, 1, 1));
         spawn(level, ModEntities.TRADER.get(), origin.offset(1, 1, -2));
         spawn(level, ModEntities.GUARD.get(), origin.offset(0, 1, 6));
-        spawn(level, ModEntities.TRAVELER.get(), origin.offset(0, 1, 8));
+        spawn(level, ModEntities.TRAVELER.get(), origin.offset(0, 1, 7));
         return true;
     }
 
+    private static BlockPos chunkCenter(WorldGenLevel level, BlockPos featureOrigin) {
+        int centerX = (featureOrigin.getX() & ~15) + 8;
+        int centerZ = (featureOrigin.getZ() & ~15) + 8;
+        int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, centerX, centerZ);
+        return new BlockPos(centerX, surfaceY, centerZ);
+    }
+
     private static void put(WorldGenLevel level, BlockPos origin, int x, int y, int z, BlockState state) {
-        level.setBlock(origin.offset(x, y, z), state, 2);
+        BlockPos target = origin.offset(x, y, z);
+        // Custom features must not write into neighbouring chunks while they are being generated.
+        if ((target.getX() >> 4) != (origin.getX() >> 4) || (target.getZ() >> 4) != (origin.getZ() >> 4)) return;
+        level.setBlock(target, state, 2);
     }
 
     private static void spawn(WorldGenLevel level, net.minecraft.world.entity.EntityType<CivilianEntity> type, BlockPos pos) {
