@@ -49,7 +49,7 @@ public class BanditEntity extends Monster {
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, CivilianEntity.class, 10, true, false,
-                target -> !target.isCombatRole()));
+                target -> target instanceof CivilianEntity civilian && !civilian.isCombatRole()));
     }
 
     @Override

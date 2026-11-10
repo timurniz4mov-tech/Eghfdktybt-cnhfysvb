@@ -32,7 +32,11 @@ public class KingdomData extends SavedData {
             if (!saved.hasUUID("owner")) continue;
             Kingdom kingdom = new Kingdom(saved.getString("name"), saved.getUUID("owner"));
             ListTag claims = saved.getList("claims", Tag.TAG_LONG);
-            for (int j = 0; j < claims.size(); j++) kingdom.claims.add(claims.getLong(j));
+            for (int j = 0; j < claims.size(); j++) {
+                // ListTag has no getLong(index) method in Minecraft 1.20.1.
+                // Each element is a LongTag because the list was read with TAG_LONG.
+                kingdom.claims.add(((net.minecraft.nbt.LongTag) claims.get(j)).getAsLong());
+            }
             ListTag wars = saved.getList("wars", Tag.TAG_STRING);
             for (int j = 0; j < wars.size(); j++) kingdom.wars.add(wars.getString(j));
             data.kingdoms.put(key(kingdom.name), kingdom);
